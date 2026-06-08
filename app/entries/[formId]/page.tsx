@@ -19,6 +19,19 @@ export default function Entries(){
   if(!form) return <main style={{maxWidth:900,margin:"3rem auto",padding:"0 1.5rem"}} className="sans">Loading…</main>;
   const fields = form.schema as Field[];
 
+  function renderCell(f:Field, val:any){
+    if(val===undefined || val===null || val==="") return "";
+    if(f.type==="content") return <span style={{color:"var(--muted)"}}>—</span>;
+    if(f.type==="signature" && typeof val==="string" && val.startsWith("data:image"))
+      return <img src={val} alt="signature" style={{height:32,border:"1px solid var(--line)",borderRadius:4}}/>;
+    if(f.type==="file" && typeof val==="string" && val.startsWith("http"))
+      return <a href={val} target="_blank" rel="noreferrer" style={{color:"var(--accent)"}}>file ↗</a>;
+    if(f.type==="group" && Array.isArray(val))
+      return <span style={{color:"var(--muted)"}}>{val.length} item{val.length===1?"":"s"}</span>;
+    if(Array.isArray(val)) return val.join(", ");
+    return String(val);
+  }
+
   return (
     <main style={{maxWidth:1000,margin:"0 auto",padding:"2rem 1.5rem"}}>
       <Link href="/dashboard" className="sans" style={{color:"var(--muted)",fontSize:".85rem"}}>← Forms</Link>
@@ -34,7 +47,7 @@ export default function Entries(){
           <tbody>{rows.map(r=>(
             <tr key={r.id} style={{borderBottom:"1px solid var(--line)"}}>
               <td style={{padding:".5rem",color:"var(--muted)",whiteSpace:"nowrap"}}>{new Date(r.created_at).toLocaleString()}</td>
-              {fields.map(f=><td key={f.id} style={{padding:".5rem"}}>{String(r.data?.[f.id] ?? "")}</td>)}
+              {fields.map(f=><td key={f.id} style={{padding:".5rem"}}>{renderCell(f, r.data?.[f.id])}</td>)}
             </tr>
           ))}</tbody>
         </table>

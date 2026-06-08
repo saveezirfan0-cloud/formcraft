@@ -177,12 +177,29 @@ Get the field ids from `GET /api/forms/:id` (the `schema` array).
 
 ---
 
-## Recreating your Cognito forms
+## Importing the DEAL form + entries
 
-Auto-import wasn't available (no Cognito read tool was connected). To recreate a
-form: dashboard → **New form** → add the matching fields → Publish. Or paste each
-form's field list (label, type, required, options) and the fields can be scripted
-straight into the `forms.schema` jsonb.
+The DEAL form is pre-built. To load it and its entries:
+
+1. **Run `supabase/storage.sql`** (file-upload bucket for the POP field).
+2. **Create the form:** open `supabase/deal_form.sql`, replace `<YOUR_USER_ID>`
+   with your account's UUID (Supabase → Authentication → Users → copy the id),
+   run it, and **copy the returned form id**.
+3. **Export entries from Cognito:** DEAL → Entries → Actions/Export → CSV.
+4. **Convert + import:**
+   ```
+   node supabase/import_entries.js <export.csv> <FORM_ID> > entries.sql
+   ```
+   Then paste `entries.sql` into the Supabase SQL Editor and run it.
+
+The converter maps Cognito columns to field ids, turns `Total` into a number,
+turns `COLLECTION LOCATION` into a checkbox array, and ignores Cognito's
+Number/Status/Submitted columns. Edit `COLUMN_MAP` in the script if your headers
+differ. Note: the **POP** files themselves aren't migrated by the CSV (Cognito
+stores them on its own servers); new submissions upload to your Supabase bucket.
+
+Dropdown options for MONTH and SALES REP are seeded with the values seen so far;
+add any missing ones in the builder (`/build/<id>`).
 
 ---
 

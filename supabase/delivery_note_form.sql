@@ -1,0 +1,11 @@
+-- Create the "Delivery Note, Terms and Conditions" form.
+-- Replace <YOUR_USER_ID> with your auth user UUID.
+insert into public.forms (owner_id, name, description, schema, published)
+values (
+  '<YOUR_USER_ID>',
+  'Delivery Note, Terms and Conditions',
+  '',
+  '[{"id":"trailer_vin_no","type":"text","label":"Trailer Vin NO","required":false},{"id":"quote_no","type":"select","label":"Quote no:","required":false,"options":[]},{"id":"invoice_no","type":"text","label":"INVOICE NO","required":false},{"id":"items","type":"group","label":"Items","required":false,"minRows":1,"fields":[{"id":"item_part_no","type":"text","label":"Part No","required":false},{"id":"item_description","type":"text","label":"Description","required":false},{"id":"item_qty","type":"number","label":"Qty","required":false}]},{"id":"signature_main","type":"signature","label":"Signature","required":false},{"id":"terms","type":"content","label":"Terms","required":false,"content":"STANDARD TRADING TERMS AND CONDITIONS.\n\n(Full T&Cs and warranty text goes here — paste the exact wording in the builder. It''s display-only.)"},{"id":"copy_signatory_id","type":"file","label":"COPY of Signatory ID","required":false},{"id":"natis","type":"file","label":"NATIS","required":false},{"id":"payment","type":"file","label":"PAYMENT","required":false},{"id":"payment_2","type":"file","label":"Payment 2","required":false},{"id":"delivery_date","type":"date","label":"Delivery Date","required":false},{"id":"email","type":"email","label":"Email","required":false},{"id":"sales_rep_signature","type":"signature","label":"Sales Rep Signature","required":false},{"id":"release_note","type":"file","label":"RELEASE NOTE","required":false},{"id":"pic_1_front","type":"file","label":"Pic 1 FRONT","required":false},{"id":"pic_2_left","type":"file","label":"Pic 2 LEFT","required":false},{"id":"pic_3_right","type":"file","label":"Pic 3 RIGHT","required":false},{"id":"pic_4_rear","type":"file","label":"Pic 4 REAR","required":false},{"id":"signatory_confirm_signature","type":"signature","label":"Signatory Signature","required":false},{"id":"polyurethane_waiver","type":"content","label":"Polyurethane Tanks Waiver","required":false,"content":"POLYURETHANE TANKS WAIVER\n\n(Paste the waiver text in the builder — display-only.)"}]'::jsonb,
+  true
+)
+returning id;

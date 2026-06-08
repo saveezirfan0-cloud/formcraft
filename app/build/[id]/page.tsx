@@ -5,7 +5,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import { Field, FieldType, FIELD_LABELS, newField } from "@/lib/field-types";
 
-const TYPES: FieldType[] = ["text","email","number","textarea","select","checkbox","date","phone"];
+const TYPES: FieldType[] = ["text","email","number","textarea","select","checkbox","date","phone","file","signature","content","group"];
+// child types allowed inside a repeating group (no nested groups)
+const CHILD_TYPES: FieldType[] = ["text","email","number","textarea","select","checkbox","date","phone","file","signature"];
 
 export default function Builder(){
   const { id } = useParams<{id:string}>(); const sb = createClient();
@@ -25,10 +27,32 @@ export default function Builder(){
   function remove(i:number){ setFields(f=>f.filter((_,j)=>j!==i)); }
   function move(i:number,d:number){ setFields(f=>{const a=[...f];const j=i+d;if(j<0||j>=a.length)return a;[a[i],a[j]]=[a[j],a[i]];return a;}); }
 
+  // child-field operations within a group
+  function addChild(i:number,t:FieldType){ update(i,{fields:[...(fields[i].fields||[]),newField(t)]}); }
+  function updateChild(i:number,ci:number,patch:Partial<Field>){
+    update(i,{fields:(fields[i].fields||[]).map((c,k)=>k===ci?{...c,...patch}:c)});
+  }
+  function removeChild(i:number,ci:number){ update(i,{fields:(fields[i].fields||[]).filter((_,k)=>k!==ci)}); }
+
   async function save(pub?:boolean){
     const p = pub===undefined?published:pub;
     await sb.from("forms").update({name,description:desc,schema:fields,published:p}).eq("id",id);
     setPublished(p); setSaved("Saved "+new Date().toLocaleTimeString()); setTimeout(()=>setSaved(""),2500);
+  }
+
+  // shared editor for a field's options/content/required controls
+  function FieldControls({f,onPatch}:{f:Field,onPatch:(p:Partial<Field>)=>void}){
+    return <>
+      {(f.type==="select"||f.type==="checkbox") && <textarea className="input" style={{marginTop:".5rem"}}
+        value={(f.options||[]).join("\n")} placeholder="One option per line"
+        onChange={e=>onPatch({options:e.target.value.split("\n")})}/>}
+      {f.type==="content" && <textarea className="input" style={{marginTop:".5rem"}} rows={4}
+        value={f.content||""} placeholder="Display text (shown to respondents, not an input)"
+        onChange={e=>onPatch({content:e.target.value})}/>}
+      {f.type!=="content" && f.type!=="group" && <label className="sans" style={{display:"flex",gap:".4rem",alignItems:"center",marginTop:".5rem",fontSize:".85rem"}}>
+        <input type="checkbox" checked={f.required} onChange={e=>onPatch({required:e.target.checked})}/> Required
+      </label>}
+    </>;
   }
 
   return (
@@ -64,14 +88,32 @@ export default function Builder(){
                   <button className="btn btn-ghost" onClick={()=>remove(i)} style={{padding:".2rem .5rem"}}>✕</button>
                 </div>
               </div>
-              <input className="input" style={{marginTop:".5rem"}} value={f.label}
-                onChange={e=>update(i,{label:e.target.value})}/>
-              {f.type==="select" && <textarea className="input" style={{marginTop:".5rem"}}
-                value={(f.options||[]).join("\n")} placeholder="One option per line"
-                onChange={e=>update(i,{options:e.target.value.split("\n")})}/>}
-              <label className="sans" style={{display:"flex",gap:".4rem",alignItems:"center",marginTop:".5rem",fontSize:".85rem"}}>
-                <input type="checkbox" checked={f.required} onChange={e=>update(i,{required:e.target.checked})}/> Required
-              </label>
+              {f.type!=="content" && <input className="input" style={{marginTop:".5rem"}} value={f.label}
+                placeholder="Field label" onChange={e=>update(i,{label:e.target.value})}/>}
+              <FieldControls f={f} onPatch={p=>update(i,p)}/>
+
+              {f.type==="group" && (
+                <div style={{marginTop:".7rem",paddingLeft:".8rem",borderLeft:"2px solid var(--line)"}}>
+                  <span className="label">Item fields</span>
+                  {(f.fields||[]).map((cf,ci)=>(
+                    <div key={cf.id} className="card" style={{padding:".7rem",marginTop:".5rem"}}>
+                      <div className="sans" style={{display:"flex",alignItems:"center"}}>
+                        <span className="label">{FIELD_LABELS[cf.type]}</span>
+                        <button className="btn btn-ghost" style={{marginLeft:"auto",padding:".2rem .5rem"}} onClick={()=>removeChild(i,ci)}>✕</button>
+                      </div>
+                      <input className="input" style={{marginTop:".4rem"}} value={cf.label} placeholder="Field label"
+                        onChange={e=>updateChild(i,ci,{label:e.target.value})}/>
+                      <FieldControls f={cf} onPatch={p=>updateChild(i,ci,p)}/>
+                    </div>
+                  ))}
+                  <div style={{display:"flex",flexWrap:"wrap",gap:".3rem",marginTop:".5rem"}}>
+                    {CHILD_TYPES.map(t=>(
+                      <button key={t} className="btn btn-ghost" style={{fontSize:".75rem",padding:".2rem .5rem"}}
+                        onClick={()=>addChild(i,t)}>+ {FIELD_LABELS[t]}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
