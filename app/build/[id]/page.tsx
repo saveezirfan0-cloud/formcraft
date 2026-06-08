@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import { Field, FieldType, FIELD_LABELS, newField } from "@/lib/field-types";
 
-const TYPES: FieldType[] = ["text","email","number","textarea","select","checkbox","date","phone","file","signature","content","group"];
+const TYPES: FieldType[] = ["text","email","number","textarea","select","checkbox","date","phone","file","signature","content","group","fieldset"];
 // child types allowed inside a repeating group (no nested groups)
 const CHILD_TYPES: FieldType[] = ["text","email","number","textarea","select","checkbox","date","phone","file","signature"];
 
@@ -92,9 +92,9 @@ export default function Builder(){
                 placeholder="Field label" onChange={e=>update(i,{label:e.target.value})}/>}
               <FieldControls f={f} onPatch={p=>update(i,p)}/>
 
-              {f.type==="group" && (
+              {(f.type==="group"||f.type==="fieldset") && (
                 <div style={{marginTop:".7rem",paddingLeft:".8rem",borderLeft:"2px solid var(--line)"}}>
-                  <span className="label">Item fields</span>
+                  <span className="label">{f.type==="group"?"Item fields (repeats)":"Section fields"}</span>
                   {(f.fields||[]).map((cf,ci)=>(
                     <div key={cf.id} className="card" style={{padding:".7rem",marginTop:".5rem"}}>
                       <div className="sans" style={{display:"flex",alignItems:"center"}}>

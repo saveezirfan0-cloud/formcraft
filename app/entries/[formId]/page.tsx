@@ -28,6 +28,12 @@ export default function Entries(){
       return <a href={val} target="_blank" rel="noreferrer" style={{color:"var(--accent)"}}>file ↗</a>;
     if(f.type==="group" && Array.isArray(val))
       return <span style={{color:"var(--muted)"}}>{val.length} item{val.length===1?"":"s"}</span>;
+    if(f.type==="fieldset"){
+      const row = Array.isArray(val) ? val[0] : val;
+      if(row && typeof row==="object")
+        return <span>{(f.fields||[]).map(cf=>row[cf.id]).filter(Boolean).join(", ")}</span>;
+      return "";
+    }
     if(Array.isArray(val)) return val.join(", ");
     return String(val);
   }

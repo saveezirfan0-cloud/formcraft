@@ -3,7 +3,8 @@ export type FieldType =
   | "select" | "checkbox" | "date" | "phone" | "file"
   | "signature"   // draw or type; stored as an image data-URL / uploaded URL
   | "content"     // display-only static text/HTML; not an input
-  | "group";      // repeating section: contains child fields, value is an array of rows
+  | "group"       // repeating section: value is an array of rows
+  | "fieldset";   // non-repeating section: a labeled group of child fields, rendered once
 
 export interface Field {
   id: string;
@@ -22,6 +23,7 @@ export const FIELD_LABELS: Record<FieldType, string> = {
   textarea: "Paragraph", select: "Dropdown", checkbox: "Checkboxes",
   date: "Date", phone: "Phone", file: "File upload",
   signature: "Signature", content: "Display text", group: "Repeating section",
+  fieldset: "Section (group of fields)",
 };
 
 export const newField = (type: FieldType): Field => {
@@ -32,5 +34,6 @@ export const newField = (type: FieldType): Field => {
   if (type === "select" || type === "checkbox") base.options = ["Option 1", "Option 2"];
   if (type === "content") { base.content = "Enter display text here…"; base.label = ""; }
   if (type === "group") { base.fields = []; base.minRows = 1; }
+  if (type === "fieldset") { base.fields = []; }
   return base;
 };

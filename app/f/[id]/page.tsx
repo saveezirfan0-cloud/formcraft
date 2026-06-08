@@ -87,6 +87,21 @@ export default function PublicForm(){
   }
 
   function renderField(f:Field){
+    if(f.type==="fieldset"){
+      return (
+        <div className="card" style={{padding:"1rem"}}>
+          {f.label && <div className="label" style={{marginBottom:".6rem"}}>{f.label}</div>}
+          <div style={{display:"grid",gap:".7rem"}}>
+            {(f.fields||[]).map(cf=>(
+              <div key={cf.id}>
+                <label className="sans" style={{display:"block",marginBottom:".3rem",fontSize:".85rem"}}>{cf.label}{cf.required&&<span style={{color:"var(--accent)"}}> *</span>}</label>
+                {renderInput(cf,{gid:f.id,rowIdx:0})}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
     if(f.type==="group"){
       const rows:any[] = Array.isArray(vals[f.id]) ? vals[f.id] : [];
       return (
@@ -123,7 +138,7 @@ export default function PublicForm(){
   async function submit(){
     setErr("");
     for(const f of form.schema as Field[]){
-      if(f.type==="content"||f.type==="group") continue;
+      if(f.type==="content"||f.type==="group"||f.type==="fieldset") continue;
       const val = vals[f.id];
       const empty = val===undefined || val==="" || (Array.isArray(val)&&val.length===0);
       if(f.required && empty){ setErr(`"${f.label}" is required`); return; }
